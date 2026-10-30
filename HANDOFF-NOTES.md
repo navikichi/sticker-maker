@@ -35,6 +35,8 @@ Everything runs in the browser. No server, no internet needed after opening, pic
 
 - Added icons from her peace-sign squirrel sticker: browser tab = face close-up (`favicon.ico`, `icons/favicon-32.png`); home screen = whole sticker on the blue-pink gradient (`icons/apple-touch-icon.png` 180, `icons/icon-192.png`; `icons/icon-512.png` is ready for the PWA later).
 
+- Password screen (Oct 31): she wants the site for herself only. Only the SHA-256 hash is in the code (casual lock, not real security). "Keep me signed in" = localStorage, otherwise until the tab closes. "Sign out" link in the footer. To change the password, replace HASH in the lock script at the top of `<body>`.
+
 ## Next
 1. In a fresh chat with `navikichi/sticker-maker` attached: Claude uploads `index.html` + these notes, then she turns on GitHub Pages.
 2. Test on phones.

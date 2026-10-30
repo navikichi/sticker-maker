@@ -70,9 +70,56 @@ input[type=range]{width:100%}
 .steps{margin:6px 0 0;padding-left:20px}
 .steps li{margin:4px 0}
 footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
+footer a{color:var(--muted)}
+#lock{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100;background:linear-gradient(135deg,#9cc0ef,#f6b8c8);display:flex;align-items:center;justify-content:center;padding:16px}
+#lock .box{background:#fff;border-radius:18px;padding:22px 18px;width:100%;max-width:340px;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.12)}
+#lock img{width:84px;height:84px}
+#lock h2{margin:6px 0 14px;font-size:20px}
+#lock input[type=password]{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;font-size:16px;text-align:center}
+#lock .keep{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 0;font-size:15px}
+#lock .btn{width:100%}
+#lock .err{color:#d0475f;font-size:14px;min-height:20px;margin-top:8px}
+html.locked body>*:not(#lock){display:none}
 </style>
 </head>
 <body>
+<div id="lock" class="hidden">
+  <form class="box" id="lockForm">
+    <img src="icons/icon-192.png" alt="">
+    <h2>Sticker Maker</h2>
+    <input type="password" id="lockPw" placeholder="Password" autocomplete="current-password">
+    <label class="keep"><input type="checkbox" id="lockKeep" checked> Keep me signed in</label>
+    <button class="btn" type="submit">Open</button>
+    <div class="err" id="lockErr"></div>
+  </form>
+</div>
+<script>
+/* simple lock: keeps casual visitors out, not real security */
+(function () {
+  var HASH = '604f2204b6fb47277f954b947372fb992fad42a6175e56f8bb152515059c6b37', KEY = 'sm-auth';
+  function get(st) { try { return window[st].getItem(KEY); } catch (e) { return null; } }
+  function signedIn() { return get('localStorage') === HASH || get('sessionStorage') === HASH; }
+  if (signedIn()) return;
+  document.documentElement.className += ' locked';
+  document.addEventListener('DOMContentLoaded', function () {
+    var lock = document.getElementById('lock'), err = document.getElementById('lockErr');
+    lock.className = '';
+    document.getElementById('lockPw').focus();
+    document.getElementById('lockForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var pw = document.getElementById('lockPw').value;
+      if (!window.crypto || !crypto.subtle) { err.textContent = 'This browser is too old for the lock.'; return; }
+      crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw)).then(function (buf) {
+        var hex = Array.prototype.map.call(new Uint8Array(buf), function (b) { return (b < 16 ? '0' : '') + b.toString(16); }).join('');
+        if (hex !== HASH) { err.textContent = 'Wrong password. Try again.'; return; }
+        try { (document.getElementById('lockKeep').checked ? localStorage : sessionStorage).setItem(KEY, HASH); } catch (x) {}
+        lock.className = 'hidden';
+        document.documentElement.className = document.documentElement.className.replace(' locked', '');
+      });
+    });
+  });
+})();
+</script>
 <header>
   <h1>✨ Sticker Maker</h1>
   <p>Turn pictures into stickers for any chat app</p>
@@ -255,7 +302,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
     <li><b>Telegram:</b> pick <b>File type: PNG</b>, then send the saved pictures to <b>@Stickers</b> to make your own pack.</li>
   </ul>
 </div>
-<footer>Sticker Maker v1 · works without internet once opened · pictures stay on your device</footer>
+<footer>Sticker Maker v1 · works without internet once opened · pictures stay on your device · <a href="#" id="signOut">Sign out</a></footer>
 </main>
 
 <div id="toast"></div>
@@ -1121,6 +1168,12 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
   $('#edSave').addEventListener('click', function () {
     if (!ed.out) return toast('Trace around your picture first ✏️');
     canvasToBlob(ed.out).then(function (b) { downloadBlob(b, 'my-sticker' + ext()); toast('Saved! Look in your Downloads.'); });
+  });
+
+  $('#signOut').addEventListener('click', function (e) {
+    e.preventDefault();
+    try { localStorage.removeItem('sm-auth'); sessionStorage.removeItem('sm-auth'); } catch (x) {}
+    location.reload();
   });
 
   // for testing
