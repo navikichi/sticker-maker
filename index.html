@@ -153,9 +153,9 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
 
   <div class="card hidden" id="cutOptsCard">
     <h3 style="margin-top:0">Look</h3>
-    <div class="opt"><span>Made for</span>
+    <div class="opt"><span>File type</span>
       <div class="seg" id="cutFor">
-        <button data-v="gif" class="on">Messenger</button><button data-v="png">Other apps</button>
+        <button data-v="gif" class="on">GIF</button><button data-v="png">PNG</button><button data-v="jpg">JPG</button>
       </div>
     </div>
     <div class="opt sizeRow"><span>Size</span>
@@ -163,7 +163,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
         <button data-v="96" class="on">Small</button><button data-v="128">Medium</button><button data-v="160">Big</button>
       </div>
     </div>
-    <p class="muted" style="margin:0">Messenger: small and see-through. Other apps: big PNG for Telegram, WhatsApp and Viber.</p>
+    <p class="muted" style="margin:0"><b>GIF:</b> small and see-through, best for Messenger. <b>PNG:</b> big and see-through, for Telegram, WhatsApp and Viber. <b>JPG:</b> big with a white background, for printing and documents.</p>
     <div class="opt"><span>White border</span>
       <div class="seg" id="cutOutline">
         <button data-v="0">None</button><button data-v="0.025">Thin</button><button data-v="0.04" class="on">Normal</button><button data-v="0.06">Thick</button>
@@ -221,9 +221,9 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
       </div>
     </div>
 
-    <div class="opt"><span>Made for</span>
+    <div class="opt"><span>File type</span>
       <div class="seg" id="edFor">
-        <button data-v="gif" class="on">Messenger</button><button data-v="png">Other apps</button>
+        <button data-v="gif" class="on">GIF</button><button data-v="png">PNG</button><button data-v="jpg">JPG</button>
       </div>
     </div>
     <div class="opt sizeRow"><span>Size</span>
@@ -231,7 +231,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
         <button data-v="96" class="on">Small</button><button data-v="128">Medium</button><button data-v="160">Big</button>
       </div>
     </div>
-    <p class="muted" style="margin:0">Messenger: small and see-through. Other apps: big PNG for Telegram, WhatsApp and Viber.</p>
+    <p class="muted" style="margin:0"><b>GIF:</b> small and see-through, best for Messenger. <b>PNG:</b> big and see-through, for Telegram, WhatsApp and Viber. <b>JPG:</b> big with a white background, for printing and documents.</p>
     <h3>Preview</h3>
     <div class="preview checker"><canvas id="edPreview" width="512" height="512"></canvas></div>
     <div class="row">
@@ -244,10 +244,10 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
 <div class="card">
   <h2>How to use your stickers</h2>
   <ul class="steps muted">
-    <li><b>Messenger:</b> pick <b>Made for: Messenger</b>, then tap <b>Share</b> and pick Messenger. Stickers come out small and see-through.</li>
+    <li><b>Messenger:</b> pick <b>File type: GIF</b>, then tap <b>Share</b> and pick Messenger. Stickers come out small and see-through.</li>
     <li><b>Facebook, Viber, Instagram:</b> tap <b>Share</b> and pick the app, or send the saved picture like a photo.</li>
-    <li><b>WhatsApp:</b> pick <b>Made for: Other apps</b>, save all, then add them with a free app like “Sticker Maker” (it needs at least 3 stickers).</li>
-    <li><b>Telegram:</b> pick <b>Made for: Other apps</b>, then send the saved pictures to <b>@Stickers</b> to make your own pack.</li>
+    <li><b>WhatsApp:</b> pick <b>File type: PNG</b>, save all, then add them with a free app like “Sticker Maker” (it needs at least 3 stickers).</li>
+    <li><b>Telegram:</b> pick <b>File type: PNG</b>, then send the saved pictures to <b>@Stickers</b> to make your own pack.</li>
   </ul>
 </div>
 <footer>Sticker Maker v1 · works without internet once opened · pictures stay on your device</footer>
@@ -323,12 +323,18 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
 
   /* ---------- saving and sharing ---------- */
   function outFormat() { return segValue('cutFor') || 'gif'; }
-  function ext() { return outFormat() === 'gif' ? '.gif' : '.png'; }
+  function ext() { return '.' + outFormat(); }
   function pngBlob(c) {
     return new Promise(function (resolve) { c.toBlob(function (b) { resolve(b); }, 'image/png'); });
   }
   function canvasToBlob(c) {
     if (outFormat() === 'gif') return Promise.resolve(encodeGif(sharpen(shrink(c, parseInt(segValue('cutSize'), 10) || 96))));
+    if (outFormat() === 'jpg') {
+      var j = mk(c.width, c.height), jx = j.getContext('2d');
+      jx.fillStyle = '#ffffff'; jx.fillRect(0, 0, j.width, j.height);
+      jx.drawImage(c, 0, 0);
+      return new Promise(function (resolve) { j.toBlob(function (b) { resolve(b); }, 'image/jpeg', 0.92); });
+    }
     return pngBlob(c);
   }
   function downloadBlob(blob, name) {
@@ -872,7 +878,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
     e.target.value = '';
   });
   bindSeg('cutOutline', function () { if (cutState.pieces.length) renderCutGrid(); });
-  // the two tabs share "Made for" and "Size"; Size only matters for Messenger
+  // the two tabs share "File type" and "Size"; Size only matters for GIF
   function syncFor(v) {
     setSegOn('cutFor', v); setSegOn('edFor', v);
     $$('.sizeRow').forEach(function (r) { r.classList.toggle('hidden', v !== 'gif'); });
