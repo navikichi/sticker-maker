@@ -44,7 +44,7 @@ Everything runs in the browser. No server, no internet needed after opening, pic
 4. Later: built-in stickers in the Interactive Notebook (see plan below).
 
 ## Future plan: stickers inside the Interactive Notebook
-- The Notebook is `msegonia/interactive-notebook` (live at theinternotebook.com). **Beryl is one of its five class sections** (Amethyst, Beryl, Citrine, Diamond, Emerald), not a separate app.
+- The Notebook is `msegonia/interactive-notebook` (live at theinternotebook.com). Note: the Notebook has a class section named Beryl, but **Beryl is also her separate app** (its own project, to be set up in its own repo). Stickers may go into both.
 - The Notebook already has a chat (teacher ↔ students/groups, announcements). Messages go through Apps Script (`action:"send"` with `{cid, text, photo}`).
 - Plan, like Messenger's sticker store:
   1. Sticker packs live in the Notebook site: `stickers/<pack>/01.gif …` plus a list file. Free, fast, cached by the service worker for offline.
