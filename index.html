@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7ea6e0">
+<title>Sticker Maker</title>
+<style>
+:root{--bg:#f5f7fc;--card:#fff;--ink:#2f3445;--muted:#7a8196;--pri:#7ea6e0;--pri-d:#5a84c4;--pink:#f3a6b8;--line:#e2e7f1;}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.4;-webkit-text-size-adjust:100%}
+header{background:linear-gradient(135deg,#9cc0ef,#f6b8c8);color:#fff;padding:18px 16px 14px;text-align:center}
+header h1{margin:0;font-size:24px;letter-spacing:.3px;text-shadow:0 1px 2px rgba(0,0,0,.15)}
+header p{margin:4px 0 0;font-size:14px;opacity:.95}
+nav{display:flex;gap:6px;padding:10px;position:sticky;top:0;background:var(--bg);z-index:5;border-bottom:1px solid var(--line)}
+nav button{flex:1;border:0;background:#fff;color:var(--ink);padding:10px 4px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.08);cursor:pointer}
+nav button.on{background:var(--pri);color:#fff}
+main{max-width:720px;margin:0 auto;padding:12px}
+section.tab{display:none}
+section.tab.on{display:block}
+.card{background:var(--card);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card h2{margin:0 0 8px;font-size:18px}
+.card h3{margin:12px 0 6px;font-size:15px}
+.muted{color:var(--muted);font-size:14px}
+label.lbl{display:block;font-weight:600;margin:10px 0 4px;font-size:15px}
+input[type=text],textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:16px;font-family:inherit;background:#fbfcfe}
+textarea{min-height:150px;resize:vertical}
+.btn{display:inline-block;border:0;background:var(--pri);color:#fff;font-weight:700;font-size:15px;padding:11px 16px;border-radius:12px;cursor:pointer;text-decoration:none;text-align:center}
+.btn:active{background:var(--pri-d)}
+.btn.pink{background:var(--pink)}
+.btn.ghost{background:#eef2f9;color:var(--ink)}
+.btn.small{padding:7px 11px;font-size:14px}
+.btn[disabled]{opacity:.45}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row .btn{flex:1 1 auto}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:20px;padding:7px 11px;font-size:14px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.chip.on{background:#e3edfb;border-color:var(--pri);color:#2c4f86;font-weight:600}
+.upload{display:block;border:2px dashed #b9cbe8;border-radius:14px;padding:22px 10px;text-align:center;color:var(--pri-d);font-weight:700;cursor:pointer;background:#f8fbff}
+.upload input{display:none}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:10px}
+.tile{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);cursor:pointer}
+.tile canvas,.checker canvas{display:block;width:100%;height:auto}
+.checker{background-color:#fff;background-image:linear-gradient(45deg,#eef1f6 25%,transparent 25%),linear-gradient(-45deg,#eef1f6 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#eef1f6 75%),linear-gradient(-45deg,transparent 75%,#eef1f6 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0}
+.tile .num{position:absolute;left:5px;top:4px;font-size:11px;color:var(--muted);font-weight:700}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0;flex-wrap:wrap}
+.opt span{font-weight:600;font-size:15px}
+.seg{display:inline-flex;background:#eef2f9;border-radius:10px;padding:3px}
+.seg button{border:0;background:transparent;padding:7px 11px;border-radius:8px;font-size:14px;cursor:pointer;color:var(--ink)}
+.seg button.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.1);font-weight:700}
+input[type=range]{width:100%}
+#work{width:100%;touch-action:none;border-radius:12px;display:block}
+.workwrap{position:relative;margin-top:10px}
+.preview{width:220px;max-width:70%;margin:10px auto;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.swatches{display:flex;gap:8px}
+.sw{width:30px;height:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer}
+.sw.on{box-shadow:0 0 0 3px var(--pri)}
+.hidden{display:none!important}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(40,45,60,.92);color:#fff;padding:10px 16px;border-radius:12px;font-size:15px;z-index:50;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%;text-align:center}
+#toast.on{opacity:1}
+#sheet{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.35);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+#sheet .box{background:#fff;width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+#sheet .box .btn{display:block;width:100%;margin-top:8px}
+#busy{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,.7);z-index:60;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--pri-d);font-size:17px}
+.steps{margin:6px 0 0;padding-left:20px}
+.steps li{margin:4px 0}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
+</style>
+</head>
+<body>
+<header>
+  <h1>✨ Sticker Maker</h1>
+  <p>Turn pictures into stickers for any chat app</p>
+</header>
+<nav>
+  <button data-tab="ai" class="on">✨ Make with AI</button>
+  <button data-tab="cut">✂️ Cut a sheet</button>
+  <button data-tab="photo">📷 Photo sticker</button>
+</nav>
+<main>
+
+<!-- ============ TAB 1: AI PROMPT HELPER ============ -->
+<section class="tab on" id="tab-ai">
+  <div class="card">
+    <h2>Make a sticker set with ChatGPT</h2>
+    <ol class="steps muted">
+      <li>Pick the feelings you want below.</li>
+      <li>Tap <b>Copy prompt</b>, then <b>Open ChatGPT</b>.</li>
+      <li>In ChatGPT, attach your photo and paste the prompt.</li>
+      <li>Save the picture it makes, then come back to <b>✂️ Cut a sheet</b>.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <label class="lbl" for="aiWho">Who or what is in your photo?</label>
+    <input type="text" id="aiWho" placeholder="e.g. my white cat, a girl with short hair" value="the character in my photo">
+
+    <label class="lbl">Style</label>
+    <div class="chips" id="aiStyle">
+      <div class="chip on" data-v="cute, round, chubby chibi style with soft pastel colors and a thick dark outline, like LINE or Messenger stickers">Cute &amp; round</div>
+      <div class="chip" data-v="soft watercolor pastel style with gentle colors and a clear dark outline">Soft pastel</div>
+      <div class="chip" data-v="simple hand-drawn doodle style with bold black lines and few colors">Simple doodle</div>
+      <div class="chip" data-v="bright, bold cartoon style with strong colors and a thick dark outline">Bright cartoon</div>
+    </div>
+
+    <label class="lbl">Feelings and poses <span class="muted" id="aiCount"></span></label>
+    <div class="chips" id="aiMoods"></div>
+    <div class="row" style="margin-top:8px">
+      <input type="text" id="aiCustom" placeholder="Add your own, e.g. dancing" style="flex:1">
+      <button class="btn small" id="aiAdd">Add</button>
+    </div>
+
+    <label class="lbl" for="aiWords">Words on some stickers <span class="muted">(optional)</span></label>
+    <input type="text" id="aiWords" placeholder="e.g. Good job!, Salamat!, Keep going!">
+  </div>
+
+  <div class="card">
+    <h2>Your prompt</h2>
+    <textarea id="aiPrompt" readonly></textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="aiCopy">📋 Copy prompt</button>
+      <a class="btn pink" id="aiOpen" href="https://chatgpt.com/" target="_blank" rel="noopener">Open ChatGPT ↗</a>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn ghost" id="aiNext">I have my sheet → ✂️ Cut it</button>
+    </div>
+    <p class="muted" style="margin-bottom:0">Only use photos you have permission to use. Making stickers inside this app automatically is coming later.</p>
+  </div>
+</section>
+
+<!-- ============ TAB 2: SHEET CUTTER ============ -->
+<section class="tab" id="tab-cut">
+  <div class="card">
+    <h2>Cut a sticker sheet</h2>
+    <p class="muted" style="margin-top:0">Upload a picture with many stickers on a plain background. Each one gets cut out.</p>
+    <label class="upload">📤 Choose sticker sheet
+      <input type="file" id="cutFile" accept="image/*">
+    </label>
+  </div>
+
+  <div class="card hidden" id="cutResultCard">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0" id="cutTitle">Stickers</h2>
+      <span class="muted">Tap a sticker for options</span>
+    </div>
+    <div class="grid" id="cutGrid"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="cutShareAll">📤 Share all</button>
+      <button class="btn pink" id="cutZip">💾 Save all (ZIP)</button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="cutOptsCard">
+    <h3 style="margin-top:0">Look</h3>
+    <div class="opt"><span>White border</span>
+      <div class="seg" id="cutOutline">
+        <button data-v="0">None</button><button data-v="0.025">Thin</button><button data-v="0.04" class="on">Normal</button><button data-v="0.06">Thick</button>
+      </div>
+    </div>
+    <h3>Cutting</h3>
+    <p class="muted" style="margin:0">If parts of the background stay, move right. If parts of a sticker disappear, move left. Then tap <b>Cut again</b>.</p>
+    <input type="range" id="cutTol" min="8" max="90" value="30">
+    <div class="row"><button class="btn ghost" id="cutAgain">✂️ Cut again</button></div>
+  </div>
+</section>
+
+<!-- ============ TAB 3: PHOTO STICKER ============ -->
+<section class="tab" id="tab-photo">
+  <div class="card">
+    <h2>Photo sticker</h2>
+    <p class="muted" style="margin-top:0">Make one sticker from a photo. Trace around what you want to keep, then add words.</p>
+    <label class="upload">📤 Choose photo
+      <input type="file" id="edFile" accept="image/*">
+    </label>
+  </div>
+
+  <div class="card hidden" id="edCard">
+    <div class="opt"><span>Keep</span>
+      <div class="seg" id="edMode">
+        <button data-v="trace" class="on">✏️ Trace</button><button data-v="whole">🖼️ Whole picture</button>
+      </div>
+    </div>
+    <p class="muted" id="edHint" style="margin:0">Draw around the part you want to keep with your finger.</p>
+    <div class="opt hidden" id="edShapeRow"><span>Shape</span>
+      <div class="seg" id="edShape">
+        <button data-v="round" class="on">Rounded</button><button data-v="circle">Circle</button>
+      </div>
+    </div>
+    <div class="workwrap checker"><canvas id="work"></canvas></div>
+    <div class="row" style="margin-top:8px"><button class="btn ghost small" id="edRedo">↺ Trace again</button></div>
+
+    <label class="lbl" for="edText">Words <span class="muted">(optional)</span></label>
+    <input type="text" id="edText" placeholder="e.g. Good job!" maxlength="40">
+    <div class="opt"><span>Place</span>
+      <div class="seg" id="edPos"><button data-v="top">Top</button><button data-v="bottom" class="on">Bottom</button></div>
+    </div>
+    <div class="opt"><span>Color</span>
+      <div class="swatches" id="edColor">
+        <div class="sw on" data-v="#ffffff" style="background:#fff"></div>
+        <div class="sw" data-v="#2f3445" style="background:#2f3445"></div>
+        <div class="sw" data-v="#f07a99" style="background:#f07a99"></div>
+        <div class="sw" data-v="#5a8fd8" style="background:#5a8fd8"></div>
+        <div class="sw" data-v="#f5b83d" style="background:#f5b83d"></div>
+      </div>
+    </div>
+    <div class="opt"><span>White border</span>
+      <div class="seg" id="edOutline">
+        <button data-v="0">None</button><button data-v="0.025">Thin</button><button data-v="0.04" class="on">Normal</button><button data-v="0.06">Thick</button>
+      </div>
+    </div>
+
+    <h3>Preview</h3>
+    <div class="preview checker"><canvas id="edPreview" width="512" height="512"></canvas></div>
+    <div class="row">
+      <button class="btn" id="edShare">📤 Share</button>
+      <button class="btn pink" id="edSave">💾 Save</button>
+    </div>
+  </div>
+</section>
+
+<div class="card">
+  <h2>How to use your stickers</h2>
+  <ul class="steps muted">
+    <li><b>Messenger, Facebook, Viber, Instagram:</b> tap <b>Share</b> and pick the app, or send the saved picture like a photo.</li>
+    <li><b>WhatsApp:</b> save all, then add them with a free app like “Sticker Maker” (it needs at least 3 stickers).</li>
+    <li><b>Telegram:</b> send the saved pictures to <b>@Stickers</b> to make your own pack.</li>
+  </ul>
+</div>
+<footer>Sticker Maker v1 · works without internet once opened · pictures stay on your device</footer>
+</main>
+
+<div id="toast"></div>
+<div id="busy" class="hidden">Working… ✨</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- small helpers ---------- */
+  function $(s, el) { return (el || document).querySelector(s); }
+  function $$(s, el) { return Array.prototype.slice.call((el || document).querySelectorAll(s)); }
+  function mk(w, h) {
+    var c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(w));
+    c.height = Math.max(1, Math.round(h));
+    return c;
+  }
+  var toastTimer = null;
+  function toast(msg) {
+    var t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('on'); }, 2600);
+  }
+  function busy(on) { $('#busy').classList.toggle('hidden', !on); }
+  function later(fn) { setTimeout(fn, 30); }
+
+  function segValue(id) { var b = $('#' + id + ' button.on'); return b ? b.getAttribute('data-v') : null; }
+  function bindSeg(id, onChange) {
+    $$('#' + id + ' button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        $$('#' + id + ' button').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        if (onChange) onChange(b.getAttribute('data-v'));
+      });
+    });
+  }
+
+  /* ---------- tabs ---------- */
+  function showTab(name) {
+    $$('nav button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === name); });
+    $$('section.tab').forEach(function (s) { s.classList.toggle('on', s.id === 'tab-' + name); });
+    window.scrollTo(0, 0);
+  }
+  $$('nav button').forEach(function (b) {
+    b.addEventListener('click', function () { showTab(b.getAttribute('data-tab')); });
+  });
+
+  /* ---------- load a picture file into a canvas ---------- */
+  function loadFile(file, maxDim) {
+    return new Promise(function (resolve, reject) {
+      var fr = new FileReader();
+      fr.onload = function () {
+        var img = new Image();
+        img.onload = function () {
+          var s = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
+          var c = mk(img.naturalWidth * s, img.naturalHeight * s);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          resolve(c);
+        };
+        img.onerror = function () { reject(new Error('Sorry, that picture could not be opened. Try a JPG or PNG.')); };
+        img.src = fr.result;
+      };
+      fr.onerror = function () { reject(new Error('Could not read that file.')); };
+      fr.readAsDataURL(file);
+    });
+  }
+
+  /* ---------- saving and sharing ---------- */
+  function canvasToBlob(c) {
+    return new Promise(function (resolve) { c.toBlob(function (b) { resolve(b); }, 'image/png'); });
+  }
+  function downloadBlob(blob, name) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 4000);
+  }
+  function shareCanvases(canvases, baseName) {
+    return Promise.all(canvases.map(canvasToBlob)).then(function (blobs) {
+      var files;
+      try {
+        files = blobs.map(function (b, i) {
+          return new File([b], baseName + (canvases.length > 1 ? '-' + pad2(i + 1) : '') + '.png', { type: 'image/png' });
+        });
+      } catch (e) { files = null; }
+      if (files && navigator.canShare && navigator.canShare({ files: files })) {
+        return navigator.share({ files: files }).catch(function () {});
+      }
+      toast('Sharing is not available here, so the stickers were saved instead.');
+      if (blobs.length === 1) downloadBlob(blobs[0], baseName + '.png');
+      else return saveZip(canvases, baseName);
+    });
+  }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+  /* ---------- tiny ZIP maker (no compression) ---------- */
+  var CRC_TABLE = (function () {
+    var t = new Uint32Array(256);
+    for (var n = 0; n < 256; n++) {
+      var c = n;
+      for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      t[n] = c >>> 0;
+    }
+    return t;
+  })();
+  function crc32(u8) {
+    var c = 0xFFFFFFFF;
+    for (var i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  function blobToU8(blob) {
+    return new Promise(function (resolve) {
+      var fr = new FileReader();
+      fr.onload = function () { resolve(new Uint8Array(fr.result)); };
+      fr.readAsArrayBuffer(blob);
+    });
+  }
+  function makeZip(entries) { // entries: [{name, data:Uint8Array}]
+    var parts = [], central = [], offset = 0;
+    entries.forEach(function (e) {
+      var nameBytes = new TextEncoder().encode(e.name);
+      var crc = crc32(e.data), size = e.data.length;
+      var lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0, true);
+      lh.setUint16(8, 0, true); lh.setUint16(10, 0, true); lh.setUint16(12, 0x21, true);
+      lh.setUint32(14, crc, true); lh.setUint32(18, size, true); lh.setUint32(22, size, true);
+      lh.setUint16(26, nameBytes.length, true); lh.setUint16(28, 0, true);
+      parts.push(new Uint8Array(lh.buffer), nameBytes, e.data);
+      var ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true);
+      ch.setUint16(8, 0, true); ch.setUint16(10, 0, true); ch.setUint16(12, 0, true); ch.setUint16(14, 0x21, true);
+      ch.setUint32(16, crc, true); ch.setUint32(20, size, true); ch.setUint32(24, size, true);
+      ch.setUint16(28, nameBytes.length, true); ch.setUint16(30, 0, true); ch.setUint16(32, 0, true);
+      ch.setUint16(34, 0, true); ch.setUint16(36, 0, true); ch.setUint32(38, 0, true); ch.setUint32(42, offset, true);
+      central.push(new Uint8Array(ch.buffer), nameBytes);
+      offset += 30 + nameBytes.length + size;
+    });
+    var cSize = central.reduce(function (s, p) { return s + p.length; }, 0);
+    var end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true); end.setUint16(8, entries.length, true); end.setUint16(10, entries.length, true);
+    end.setUint32(12, cSize, true); end.setUint32(16, offset, true);
+    return new Blob(parts.concat(central, [new Uint8Array(end.buffer)]), { type: 'application/zip' });
+  }
+  function saveZip(canvases, baseName) {
+    return Promise.all(canvases.map(function (c) { return canvasToBlob(c).then(blobToU8); })).then(function (datas) {
+      var zip = makeZip(datas.map(function (d, i) { return { name: baseName + '-' + pad2(i + 1) + '.png', data: d }; }));
+      downloadBlob(zip, baseName + '.zip');
+    });
+  }
+
+  /* ---------- sticker look: fit into 512x512 with a white border ---------- */
+  function renderSticker(src, outlineFrac) {
+    var S = 512;
+    var ow = Math.round(S * (outlineFrac || 0));
+    var pad = Math.round(S * 0.025);
+    var avail = S - 2 * (pad + ow);
+    var sc = Math.min(avail / src.width, avail / src.height);
+    var dw = src.width * sc, dh = src.height * sc;
+    var dx = (S - dw) / 2, dy = (S - dh) / 2;
+    var out = mk(S, S), o = out.getContext('2d');
+    o.imageSmoothingQuality = 'high';
+    if (ow > 0) {
+      var sil = mk(S, S), s = sil.getContext('2d');
+      s.drawImage(src, dx, dy, dw, dh);
+      s.globalCompositeOperation = 'source-in';
+      s.fillStyle = '#ffffff';
+      s.fillRect(0, 0, S, S);
+      // soft shadow so the white border shows on white chat backgrounds
+      o.save();
+      o.shadowColor = 'rgba(0,0,0,0.18)';
+      o.shadowBlur = Math.max(2, ow * 0.5);
+      var rings = [ow, ow * 0.66, ow * 0.33];
+      for (var r = 0; r < rings.length; r++) {
+        var steps = r === 0 ? 24 : 16;
+        for (var a = 0; a < steps; a++) {
+          var ang = a / steps * Math.PI * 2;
+          o.drawImage(sil, Math.cos(ang) * rings[r], Math.sin(ang) * rings[r]);
+        }
+        if (r === 0) { o.shadowColor = 'transparent'; o.shadowBlur = 0; }
+      }
+      o.restore();
+      o.drawImage(sil, 0, 0);
+    }
+    o.drawImage(src, dx, dy, dw, dh);
+    return out;
+  }
+
+  /* ---------- mask helpers (box dilate / erode with prefix sums) ---------- */
+  function boxPass(m, w, h, r, needAll) {
+    var t = new Uint8Array(w * h), out = new Uint8Array(w * h);
+    var pre = new Int32Array(Math.max(w, h) + 1), x, y, a, b, sum, i;
+    for (y = 0; y < h; y++) {
+      i = y * w; pre[0] = 0;
+      for (x = 0; x < w; x++) pre[x + 1] = pre[x] + m[i + x];
+      for (x = 0; x < w; x++) {
+        a = x - r < 0 ? 0 : x - r; b = x + r >= w ? w - 1 : x + r;
+        sum = pre[b + 1] - pre[a];
+        t[i + x] = needAll ? (sum === b - a + 1 ? 1 : 0) : (sum > 0 ? 1 : 0);
+      }
+    }
+    for (x = 0; x < w; x++) {
+      pre[0] = 0;
+      for (y = 0; y < h; y++) pre[y + 1] = pre[y] + t[y * w + x];
+      for (y = 0; y < h; y++) {
+        a = y - r < 0 ? 0 : y - r; b = y + r >= h ? h - 1 : y + r;
+        sum = pre[b + 1] - pre[a];
+        out[y * w + x] = needAll ? (sum === b - a + 1 ? 1 : 0) : (sum > 0 ? 1 : 0);
+      }
+    }
+    return out;
+  }
+
+  function estimateBg(d, w, h) {
+    var buckets = {}, best = null, bestN = 0;
+    function add(i) {
+      if (d[i + 3] < 20) return;
+      var key = (d[i] >> 4) + ',' + (d[i + 1] >> 4) + ',' + (d[i + 2] >> 4);
+      var bk = buckets[key] || (buckets[key] = { n: 0, r: 0, g: 0, b: 0 });
+      bk.n++; bk.r += d[i]; bk.g += d[i + 1]; bk.b += d[i + 2];
+      if (bk.n > bestN) { bestN = bk.n; best = bk; }
+    }
+    var x, y;
+    for (x = 0; x < w; x += 2) { add(x * 4); add(((h - 1) * w + x) * 4); }
+    for (y = 0; y < h; y += 2) { add(y * w * 4); add((y * w + w - 1) * 4); }
+    if (!best) return [255, 255, 255];
+    return [best.r / best.n, best.g / best.n, best.b / best.n];
+  }
+
+  /* ---------- cut a sheet into separate stickers ---------- */
+  function cutSheet(src, tol) {
+    var w = src.width, h = src.height, n = w * h;
+    var d = src.getContext('2d').getImageData(0, 0, w, h).data;
+    var bg = estimateBg(d, w, h);
+    var fg = new Uint8Array(n), i, j;
+    for (i = 0, j = 0; i < n; i++, j += 4) {
+      if (d[j + 3] < 20) continue;
+      var dr = Math.abs(d[j] - bg[0]), dg = Math.abs(d[j + 1] - bg[1]), db = Math.abs(d[j + 2] - bg[2]);
+      var m = dr > dg ? dr : dg; if (db > m) m = db;
+      if (m > tol) fg[i] = 1;
+    }
+    // close small gaps in outlines so white insides stay
+    var r = Math.max(2, Math.round(Math.min(w, h) / 350));
+    var closed = boxPass(boxPass(fg, w, h, r, false), w, h, r, true);
+    // background = reachable from the edges
+    var bgm = new Uint8Array(n), q = new Int32Array(n), qh = 0, qt = 0;
+    function seed(k) { if (!closed[k] && !bgm[k]) { bgm[k] = 1; q[qt++] = k; } }
+    var x, y;
+    for (x = 0; x < w; x++) { seed(x); seed((h - 1) * w + x); }
+    for (y = 0; y < h; y++) { seed(y * w); seed(y * w + w - 1); }
+    while (qh < qt) {
+      var k = q[qh++]; x = k % w; y = (k - x) / w;
+      if (x > 0) seed(k - 1); if (x < w - 1) seed(k + 1);
+      if (y > 0) seed(k - w); if (y < h - 1) seed(k + w);
+    }
+    // label the separate pieces
+    var lab = new Int32Array(n), comps = [], id = 0;
+    for (i = 0; i < n; i++) {
+      if (bgm[i] || lab[i]) continue;
+      id++;
+      var c = { id: id, area: 0, x0: w, y0: h, x1: 0, y1: 0 };
+      qh = 0; qt = 0; q[qt++] = i; lab[i] = id;
+      while (qh < qt) {
+        var p = q[qh++]; var px = p % w, py = (p - px) / w;
+        c.area++;
+        if (px < c.x0) c.x0 = px; if (px > c.x1) c.x1 = px;
+        if (py < c.y0) c.y0 = py; if (py > c.y1) c.y1 = py;
+        for (var dy = -1; dy <= 1; dy++) {
+          var yy = py + dy; if (yy < 0 || yy >= h) continue;
+          for (var dx = -1; dx <= 1; dx++) {
+            var xx = px + dx; if (xx < 0 || xx >= w) continue;
+            var nk = yy * w + xx;
+            if (!bgm[nk] && !lab[nk]) { lab[nk] = id; q[qt++] = nk; }
+          }
+        }
+      }
+      comps.push(c);
+    }
+    var minArea = Math.max(12, n * 0.00003);
+    comps = comps.filter(function (c) { return c.area >= minArea; });
+    if (!comps.length) return [];
+    var maxArea = 0;
+    comps.forEach(function (c) { if (c.area > maxArea) maxArea = c.area; });
+    var bigs = comps.filter(function (c) { return c.area >= maxArea * 0.12; });
+    var smalls = comps.filter(function (c) { return c.area < maxArea * 0.12; });
+    bigs.forEach(function (b) { b.members = [b.id]; b.gx0 = b.x0; b.gy0 = b.y0; b.gx1 = b.x1; b.gy1 = b.y1; });
+    function gap(a, b) {
+      var gx = Math.max(0, Math.max(a.x0, b.x0) - Math.min(a.x1, b.x1));
+      var gy = Math.max(0, Math.max(a.y0, b.y0) - Math.min(a.y1, b.y1));
+      return Math.sqrt(gx * gx + gy * gy);
+    }
+    smalls.forEach(function (s) {
+      var best = null, bd = 1e9;
+      bigs.forEach(function (b) { var g = gap(s, b); if (g < bd) { bd = g; best = b; } });
+      var limit = Math.sqrt(best.area) * 0.6;
+      if (bd <= limit) {
+        best.members.push(s.id);
+        best.gx0 = Math.min(best.gx0, s.x0); best.gy0 = Math.min(best.gy0, s.y0);
+        best.gx1 = Math.max(best.gx1, s.x1); best.gy1 = Math.max(best.gy1, s.y1);
+      }
+    });
+    // reading order: rows, then left to right
+    var avgH = bigs.reduce(function (s, b) { return s + (b.y1 - b.y0); }, 0) / bigs.length;
+    bigs.forEach(function (b) { b.cy = (b.gy0 + b.gy1) / 2; b.cx = (b.gx0 + b.gx1) / 2; });
+    bigs.sort(function (a, b) { return a.cy - b.cy; });
+    var rows = [], cur = null;
+    bigs.forEach(function (b) {
+      if (!cur || b.cy - cur.cy > avgH * 0.5) { cur = { cy: b.cy, items: [] }; rows.push(cur); }
+      cur.items.push(b);
+    });
+    var ordered = [];
+    rows.forEach(function (rw) { rw.items.sort(function (a, b) { return a.cx - b.cx; }); ordered = ordered.concat(rw.items); });
+    // copy each sticker out
+    return ordered.map(function (g) {
+      var bw = g.gx1 - g.gx0 + 1, bh = g.gy1 - g.gy0 + 1;
+      var out = mk(bw, bh), octx = out.getContext('2d');
+      var img = octx.createImageData(bw, bh), od = img.data;
+      var set = {}; g.members.forEach(function (m) { set[m] = 1; });
+      for (var yy = 0; yy < bh; yy++) {
+        for (var xx = 0; xx < bw; xx++) {
+          var si = (g.gy0 + yy) * w + (g.gx0 + xx);
+          if (set[lab[si]]) {
+            var sj = si * 4, oj = (yy * bw + xx) * 4;
+            od[oj] = d[sj]; od[oj + 1] = d[sj + 1]; od[oj + 2] = d[sj + 2]; od[oj + 3] = d[sj + 3];
+          }
+        }
+      }
+      octx.putImageData(img, 0, 0);
+      return out;
+    });
+  }
+
+  /* =========================================================
+     TAB 1: AI prompt helper
+     ========================================================= */
+  var MOODS = [
+    ['Happy', 'happy and smiling', 1], ['Love', 'hugging a big pink heart', 1], ['Peace sign', 'winking and making a peace sign', 1],
+    ['Cool', 'wearing sunglasses, looking cool', 1], ['Tired', 'lying flat, very tired', 1], ['Peeking', 'peeking from behind a wall', 1],
+    ['Milk tea', 'happily drinking milk tea', 1], ['Crying', 'crying with big tears', 1], ['Laughing', 'laughing very hard', 1],
+    ['Angry', 'angry and puffing', 1], ['Sleeping', 'sleeping on a pillow with Zzz', 1], ['Eating', 'eating a snack', 1],
+    ['Waving', 'waving hello', 0], ['Thank you', 'bowing to say thank you', 0], ['Good job', 'giving a thumbs up', 0],
+    ['Thinking', 'thinking with a question mark', 0], ['Surprised', 'surprised with wide eyes', 0], ['Studying', 'reading a book', 0],
+    ['Celebrating', 'celebrating with confetti', 0], ['Shy', 'shy and blushing', 0]
+  ];
+  function drawMoodChips() {
+    var box = $('#aiMoods'); box.innerHTML = '';
+    MOODS.forEach(function (m, i) {
+      var c = document.createElement('div');
+      c.className = 'chip' + (m[2] ? ' on' : '');
+      c.textContent = m[0];
+      c.addEventListener('click', function () { m[2] = m[2] ? 0 : 1; c.classList.toggle('on', !!m[2]); buildPrompt(); });
+      box.appendChild(c);
+    });
+  }
+  function buildPrompt() {
+    var who = ($('#aiWho').value || '').trim() || 'the character in my photo';
+    var styleChip = $('#aiStyle .chip.on');
+    var style = styleChip ? styleChip.getAttribute('data-v') : '';
+    var picked = MOODS.filter(function (m) { return m[2]; });
+    var n = picked.length;
+    $('#aiCount').textContent = '(' + n + ' picked)';
+    if (!n) { $('#aiPrompt').value = 'Please pick at least one feeling or pose above.'; return; }
+    var cols = n <= 4 ? n : (n <= 9 ? 3 : 4);
+    var rows = Math.ceil(n / cols);
+    var list = picked.map(function (m, i) { return (i + 1) + '. ' + m[1]; }).join('\n');
+    var words = ($('#aiWords').value || '').trim();
+    var p = 'Using the photo I attached as the reference, create a sticker sheet of ' + who +
+      ' as a cute cartoon character. Keep the main colors and features from the photo so it is easy to recognize.\n\n' +
+      'Make ' + n + ' stickers in a neat grid (' + cols + ' columns, ' + rows + ' rows). Each sticker shows a different pose or feeling:\n' +
+      list + '\n\n' +
+      'Style: ' + style + '. Keep the character looking the same in every sticker.\n\n';
+    if (words) p += 'Add these short words inside some of the stickers, in bold, easy-to-read letters: ' + words + '.\n\n';
+    p += 'Important, so the stickers can be cut out cleanly:\n' +
+      '- Plain, pure white background.\n' +
+      '- Leave wide empty white space between stickers. Nothing touches or overlaps.\n' +
+      '- Each sticker has a thick dark outline.\n' +
+      '- Small extras (hearts, sparkles, Zzz) stay close to their own character.\n' +
+      '- No borders, grid lines, frames, shadows, numbers or titles.';
+    $('#aiPrompt').value = p;
+  }
+  $$('#aiStyle .chip').forEach(function (c) {
+    c.addEventListener('click', function () {
+      $$('#aiStyle .chip').forEach(function (x) { x.classList.remove('on'); });
+      c.classList.add('on'); buildPrompt();
+    });
+  });
+  $('#aiWho').addEventListener('input', buildPrompt);
+  $('#aiWords').addEventListener('input', buildPrompt);
+  $('#aiAdd').addEventListener('click', function () {
+    var v = ($('#aiCustom').value || '').trim();
+    if (!v) return;
+    MOODS.push([v, v, 1]);
+    $('#aiCustom').value = '';
+    drawMoodChips(); buildPrompt();
+  });
+  $('#aiCopy').addEventListener('click', function () {
+    var ta = $('#aiPrompt'), text = ta.value;
+    function done() { toast('Prompt copied! Now open ChatGPT ✨'); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(); });
+    } else fallbackCopy();
+    function fallbackCopy() {
+      ta.removeAttribute('readonly'); ta.focus(); ta.select();
+      try { ta.setSelectionRange(0, text.length); } catch (e) {}
+      var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+      ta.setAttribute('readonly', ''); ta.blur();
+      if (ok) done(); else toast('Please press and hold the text to copy it.');
+    }
+  });
+  $('#aiNext').addEventListener('click', function () { showTab('cut'); });
+  drawMoodChips(); buildPrompt();
+
+  /* =========================================================
+     TAB 2: sheet cutter
+     ========================================================= */
+  var cutState = { src: null, pieces: [], outs: [] };
+  function cutOutlineFrac() { return parseFloat(segValue('cutOutline')) || 0; }
+
+  function runCut() {
+    if (!cutState.src) return;
+    busy(true);
+    later(function () {
+      try {
+        cutState.pieces = cutSheet(cutState.src, parseInt($('#cutTol').value, 10));
+        renderCutGrid();
+      } catch (e) { toast('Something went wrong while cutting. Try a smaller picture.'); }
+      busy(false);
+    });
+  }
+  function renderCutGrid() {
+    var f = cutOutlineFrac();
+    cutState.outs = cutState.pieces.map(function (p) { return renderSticker(p, f); });
+    var grid = $('#cutGrid'); grid.innerHTML = '';
+    cutState.outs.forEach(function (c, i) {
+      var t = document.createElement('div');
+      t.className = 'tile checker';
+      t.appendChild(c);
+      var num = document.createElement('span'); num.className = 'num'; num.textContent = i + 1;
+      t.appendChild(num);
+      t.addEventListener('click', function () { openTileMenu(i); });
+      grid.appendChild(t);
+    });
+    var n = cutState.outs.length;
+    $('#cutTitle').textContent = n ? n + ' sticker' + (n > 1 ? 's' : '') : 'No stickers found';
+    $('#cutResultCard').classList.remove('hidden');
+    $('#cutOptsCard').classList.remove('hidden');
+    if (!n) toast('No stickers found. Try moving the Cutting slider, then Cut again.');
+  }
+  function openTileMenu(i) {
+    var wrap = document.createElement('div');
+    wrap.id = 'sheet';
+    wrap.innerHTML = '<div class="box"><b>Sticker ' + (i + 1) + '</b>' +
+      '<button class="btn" data-a="share">📤 Share</button>' +
+      '<button class="btn pink" data-a="save">💾 Save</button>' +
+      '<button class="btn ghost" data-a="edit">✏️ Add words</button>' +
+      '<button class="btn ghost" data-a="del">🗑️ Remove from set</button>' +
+      '<button class="btn ghost" data-a="close">Close</button></div>';
+    document.body.appendChild(wrap);
+    function close() { wrap.remove(); }
+    wrap.addEventListener('click', function (e) {
+      if (e.target === wrap) return close();
+      var a = e.target.getAttribute && e.target.getAttribute('data-a');
+      if (!a) return;
+      close();
+      if (a === 'share') shareCanvases([cutState.outs[i]], 'sticker-' + pad2(i + 1));
+      else if (a === 'save') canvasToBlob(cutState.outs[i]).then(function (b) { downloadBlob(b, 'sticker-' + pad2(i + 1) + '.png'); });
+      else if (a === 'edit') { editorLoad(cutState.pieces[i], true); showTab('photo'); }
+      else if (a === 'del') { cutState.pieces.splice(i, 1); renderCutGrid(); }
+    });
+  }
+  $('#cutFile').addEventListener('change', function (e) {
+    var f = e.target.files && e.target.files[0];
+    if (!f) return;
+    busy(true);
+    loadFile(f, 2048).then(function (c) { cutState.src = c; busy(false); runCut(); })
+      .catch(function (err) { busy(false); toast(err.message); });
+    e.target.value = '';
+  });
+  bindSeg('cutOutline', function () { if (cutState.pieces.length) renderCutGrid(); });
+  $('#cutAgain').addEventListener('click', runCut);
+  $('#cutShareAll').addEventListener('click', function () {
+    if (cutState.outs.length) shareCanvases(cutState.outs, 'sticker');
+  });
+  $('#cutZip').addEventListener('click', function () {
+    if (!cutState.outs.length) return;
+    busy(true);
+    saveZip(cutState.outs, 'stickers').then(function () { busy(false); toast('Saved! Look in your Downloads.'); });
+  });
+
+  /* =========================================================
+     TAB 3: photo sticker editor
+     ========================================================= */
+  var ed = { src: null, hasAlpha: false, path: [], drawing: false, scale: 1, out: null };
+  var work = $('#work'), wctx = work.getContext('2d');
+
+  function checkAlpha(c) {
+    var d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    for (var i = 3; i < d.length; i += 16) if (d[i] < 200) return true;
+    return false;
+  }
+  function editorLoad(canvas, fromCutter) {
+    ed.src = canvas;
+    ed.hasAlpha = fromCutter || checkAlpha(canvas);
+    ed.path = [];
+    setSegOn('edMode', ed.hasAlpha ? 'whole' : 'trace');
+    $('#edCard').classList.remove('hidden');
+    updateModeUI();
+    drawWork();
+    updatePreview();
+  }
+  function setSegOn(id, v) {
+    $$('#' + id + ' button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-v') === v); });
+  }
+  function updateModeUI() {
+    var mode = segValue('edMode');
+    $('#edHint').textContent = mode === 'trace'
+      ? 'Draw around the part you want to keep with your finger.'
+      : (ed.hasAlpha ? 'The whole sticker is kept.' : 'The whole picture is kept. Pick a shape.');
+    $('#edShapeRow').classList.toggle('hidden', mode !== 'whole' || ed.hasAlpha);
+    $('#edRedo').classList.toggle('hidden', mode !== 'trace');
+  }
+  function drawWork() {
+    if (!ed.src) return;
+    var src = ed.src;
+    work.width = src.width; work.height = src.height;
+    wctx.clearRect(0, 0, work.width, work.height);
+    wctx.drawImage(src, 0, 0);
+    var p = ed.path, mode = segValue('edMode');
+    if (mode === 'trace' && p.length > 1) {
+      var lw = Math.max(3, src.width / 150);
+      if (!ed.drawing && p.length > 2) {
+        // dim the outside
+        wctx.save();
+        wctx.fillStyle = 'rgba(255,255,255,0.65)';
+        wctx.beginPath();
+        wctx.rect(0, 0, src.width, src.height);
+        tracePath(wctx, p);
+        wctx.fill('evenodd');
+        wctx.restore();
+      }
+      wctx.save();
+      wctx.lineJoin = 'round'; wctx.lineCap = 'round';
+      wctx.strokeStyle = '#f07a99'; wctx.lineWidth = lw;
+      wctx.setLineDash([lw * 2.5, lw * 1.8]);
+      wctx.beginPath(); tracePath(wctx, p);
+      if (!ed.drawing) wctx.closePath();
+      wctx.stroke();
+      wctx.restore();
+    }
+  }
+  function tracePath(ctx, p) {
+    ctx.moveTo(p[0][0], p[0][1]);
+    for (var i = 1; i < p.length; i++) ctx.lineTo(p[i][0], p[i][1]);
+  }
+  function workPoint(clientX, clientY) {
+    var r = work.getBoundingClientRect();
+    return [(clientX - r.left) * work.width / r.width, (clientY - r.top) * work.height / r.height];
+  }
+  function startDraw(x, y) {
+    if (segValue('edMode') !== 'trace' || !ed.src) return false;
+    ed.drawing = true; ed.path = [workPoint(x, y)]; drawWork(); return true;
+  }
+  function moveDraw(x, y) {
+    if (!ed.drawing) return;
+    var pt = workPoint(x, y), last = ed.path[ed.path.length - 1];
+    var minStep = work.width / 300;
+    if (Math.abs(pt[0] - last[0]) + Math.abs(pt[1] - last[1]) > minStep) { ed.path.push(pt); drawWork(); }
+  }
+  function endDraw() {
+    if (!ed.drawing) return;
+    ed.drawing = false;
+    if (ed.path.length < 3) ed.path = [];
+    drawWork(); updatePreview();
+  }
+  if (window.PointerEvent) {
+    work.addEventListener('pointerdown', function (e) { if (startDraw(e.clientX, e.clientY)) { work.setPointerCapture(e.pointerId); e.preventDefault(); } });
+    work.addEventListener('pointermove', function (e) { moveDraw(e.clientX, e.clientY); });
+    work.addEventListener('pointerup', endDraw);
+    work.addEventListener('pointercancel', endDraw);
+  } else {
+    work.addEventListener('touchstart', function (e) { var t = e.touches[0]; if (startDraw(t.clientX, t.clientY)) e.preventDefault(); }, { passive: false });
+    work.addEventListener('touchmove', function (e) { var t = e.touches[0]; moveDraw(t.clientX, t.clientY); e.preventDefault(); }, { passive: false });
+    work.addEventListener('touchend', endDraw);
+    work.addEventListener('mousedown', function (e) { startDraw(e.clientX, e.clientY); });
+    window.addEventListener('mousemove', function (e) { moveDraw(e.clientX, e.clientY); });
+    window.addEventListener('mouseup', endDraw);
+  }
+
+  function trimAlpha(c) {
+    var d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    var x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
+    for (var y = 0; y < c.height; y++) for (var x = 0; x < c.width; x++) {
+      if (d[(y * c.width + x) * 4 + 3] > 10) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    }
+    if (x1 < 0) return c;
+    var o = mk(x1 - x0 + 1, y1 - y0 + 1);
+    o.getContext('2d').drawImage(c, -x0, -y0);
+    return o;
+  }
+  function roundRectPath(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+  }
+  function editorCut() {
+    var src = ed.src, mode = segValue('edMode');
+    if (mode === 'trace' && ed.path.length > 2) {
+      var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+      ed.path.forEach(function (p) { x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); });
+      x0 = Math.max(0, Math.floor(x0)); y0 = Math.max(0, Math.floor(y0));
+      x1 = Math.min(src.width, Math.ceil(x1)); y1 = Math.min(src.height, Math.ceil(y1));
+      var c = mk(x1 - x0, y1 - y0), ctx = c.getContext('2d');
+      ctx.translate(-x0, -y0);
+      ctx.beginPath(); tracePath(ctx, ed.path); ctx.closePath(); ctx.clip();
+      ctx.drawImage(src, 0, 0);
+      return c;
+    }
+    if (ed.hasAlpha) return trimAlpha(src);
+    if (mode === 'trace') return null; // nothing traced yet
+    var shape = segValue('edShape');
+    if (shape === 'circle') {
+      var s = Math.min(src.width, src.height), cc = mk(s, s), cx = cc.getContext('2d');
+      cx.beginPath(); cx.arc(s / 2, s / 2, s / 2, 0, Math.PI * 2); cx.clip();
+      cx.drawImage(src, (s - src.width) / 2, (s - src.height) / 2);
+      return cc;
+    }
+    var rc = mk(src.width, src.height), rx = rc.getContext('2d');
+    roundRectPath(rx, 0, 0, src.width, src.height, Math.min(src.width, src.height) * 0.12); rx.clip();
+    rx.drawImage(src, 0, 0);
+    return rc;
+  }
+  function addCaption(img, text, pos, color) {
+    if (!text) return img;
+    var big = Math.max(img.width, img.height);
+    var fs = Math.round(big * 0.15);
+    var font = function (size) { return '900 ' + size + 'px "Arial Rounded MT Bold", "Nunito", "Trebuchet MS", "Segoe UI", sans-serif'; };
+    var m = mk(10, 10).getContext('2d');
+    m.font = font(fs);
+    var tw = m.measureText(text).width;
+    var maxW = big * 1.05;
+    if (tw > maxW) { fs = Math.max(10, Math.floor(fs * maxW / tw)); m.font = font(fs); tw = m.measureText(text).width; }
+    var stroke = Math.max(2, fs * 0.2);
+    var textH = fs * 1.15;
+    var overlap = textH * 0.3;
+    var W = Math.ceil(Math.max(img.width, tw + stroke * 2 + 4));
+    var H = Math.ceil(img.height + textH - overlap + stroke);
+    var c = mk(W, H), ctx = c.getContext('2d');
+    var imgY = pos === 'top' ? H - img.height : 0;
+    ctx.drawImage(img, (W - img.width) / 2, imgY);
+    var ty = pos === 'top' ? (textH / 2 + stroke / 2) : (H - textH / 2 - stroke / 2);
+    ctx.font = font(fs);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round'; ctx.lineWidth = stroke;
+    var light = /^#(f|e|d)/i.test(color) || color === '#f5b83d';
+    ctx.strokeStyle = light ? '#2f3445' : '#ffffff';
+    ctx.strokeText(text, W / 2, ty);
+    ctx.fillStyle = color;
+    ctx.fillText(text, W / 2, ty);
+    return c;
+  }
+  function updatePreview() {
+    var pv = $('#edPreview'), p = pv.getContext('2d');
+    p.clearRect(0, 0, 512, 512);
+    ed.out = null;
+    if (!ed.src) return;
+    var cut = editorCut();
+    if (!cut) {
+      p.fillStyle = '#9aa3b8'; p.font = '600 28px sans-serif'; p.textAlign = 'center';
+      p.fillText('Trace first ✏️', 256, 266);
+      return;
+    }
+    var colorEl = $('#edColor .sw.on');
+    var content = addCaption(cut, ($('#edText').value || '').trim(), segValue('edPos'), colorEl ? colorEl.getAttribute('data-v') : '#ffffff');
+    ed.out = renderSticker(content, parseFloat(segValue('edOutline')) || 0);
+    p.drawImage(ed.out, 0, 0);
+  }
+  var pvTimer = null;
+  function schedulePreview() { clearTimeout(pvTimer); pvTimer = setTimeout(updatePreview, 120); }
+
+  $('#edFile').addEventListener('change', function (e) {
+    var f = e.target.files && e.target.files[0];
+    if (!f) return;
+    busy(true);
+    loadFile(f, 1600).then(function (c) { busy(false); editorLoad(c, false); })
+      .catch(function (err) { busy(false); toast(err.message); });
+    e.target.value = '';
+  });
+  bindSeg('edMode', function () { updateModeUI(); drawWork(); updatePreview(); });
+  bindSeg('edShape', updatePreview);
+  bindSeg('edPos', updatePreview);
+  bindSeg('edOutline', updatePreview);
+  $$('#edColor .sw').forEach(function (s) {
+    s.addEventListener('click', function () {
+      $$('#edColor .sw').forEach(function (x) { x.classList.remove('on'); });
+      s.classList.add('on'); updatePreview();
+    });
+  });
+  $('#edText').addEventListener('input', schedulePreview);
+  $('#edRedo').addEventListener('click', function () { ed.path = []; drawWork(); updatePreview(); });
+  $('#edShare').addEventListener('click', function () {
+    if (!ed.out) return toast('Trace around your picture first ✏️');
+    shareCanvases([ed.out], 'my-sticker');
+  });
+  $('#edSave').addEventListener('click', function () {
+    if (!ed.out) return toast('Trace around your picture first ✏️');
+    canvasToBlob(ed.out).then(function (b) { downloadBlob(b, 'my-sticker.png'); toast('Saved! Look in your Downloads.'); });
+  });
+
+  // for testing
+  window.__sticker = { cutSheet: cutSheet, renderSticker: renderSticker, cutState: cutState, ed: ed };
+})();
+</script>
+</body>
+</html>
