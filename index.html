@@ -153,7 +153,13 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
 
   <div class="card hidden" id="cutOptsCard">
     <h3 style="margin-top:0">Look</h3>
-    <div class="opt"><span>White border</span>
+    <div class="opt"><span>Made for</span>
+      <div class="seg" id="cutFor">
+        <button data-v="gif" class="on">Messenger</button><button data-v="png">Other apps</button>
+      </div>
+    </div>
+    <p class="muted" style="margin:0">Messenger: small and see-through. Other apps: big PNG for Telegram, WhatsApp and Viber.</p>
+        <div class="opt"><span>White border</span>
       <div class="seg" id="cutOutline">
         <button data-v="0">None</button><button data-v="0.025">Thin</button><button data-v="0.04" class="on">Normal</button><button data-v="0.06">Thick</button>
       </div>
@@ -210,6 +216,12 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
       </div>
     </div>
 
+    <div class="opt"><span>Made for</span>
+      <div class="seg" id="edFor">
+        <button data-v="gif" class="on">Messenger</button><button data-v="png">Other apps</button>
+      </div>
+    </div>
+    <p class="muted" style="margin:0">Messenger: small and see-through. Other apps: big PNG for Telegram, WhatsApp and Viber.</p>
     <h3>Preview</h3>
     <div class="preview checker"><canvas id="edPreview" width="512" height="512"></canvas></div>
     <div class="row">
@@ -222,9 +234,10 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
 <div class="card">
   <h2>How to use your stickers</h2>
   <ul class="steps muted">
-    <li><b>Messenger, Facebook, Viber, Instagram:</b> tap <b>Share</b> and pick the app, or send the saved picture like a photo.</li>
-    <li><b>WhatsApp:</b> save all, then add them with a free app like “Sticker Maker” (it needs at least 3 stickers).</li>
-    <li><b>Telegram:</b> send the saved pictures to <b>@Stickers</b> to make your own pack.</li>
+    <li><b>Messenger:</b> pick <b>Made for: Messenger</b>, then tap <b>Share</b> and pick Messenger. Stickers come out small and see-through.</li>
+    <li><b>Facebook, Viber, Instagram:</b> tap <b>Share</b> and pick the app, or send the saved picture like a photo.</li>
+    <li><b>WhatsApp:</b> pick <b>Made for: Other apps</b>, save all, then add them with a free app like “Sticker Maker” (it needs at least 3 stickers).</li>
+    <li><b>Telegram:</b> pick <b>Made for: Other apps</b>, then send the saved pictures to <b>@Stickers</b> to make your own pack.</li>
   </ul>
 </div>
 <footer>Sticker Maker v1 · works without internet once opened · pictures stay on your device</footer>
@@ -299,8 +312,14 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
   }
 
   /* ---------- saving and sharing ---------- */
-  function canvasToBlob(c) {
+  function outFormat() { return segValue('cutFor') || 'gif'; }
+  function ext() { return outFormat() === 'gif' ? '.gif' : '.png'; }
+  function pngBlob(c) {
     return new Promise(function (resolve) { c.toBlob(function (b) { resolve(b); }, 'image/png'); });
+  }
+  function canvasToBlob(c) {
+    if (outFormat() === 'gif') return Promise.resolve(encodeGif(shrink(c, GIF_SIZE)));
+    return pngBlob(c);
   }
   function downloadBlob(blob, name) {
     var url = URL.createObjectURL(blob);
@@ -315,14 +334,14 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
       var files;
       try {
         files = blobs.map(function (b, i) {
-          return new File([b], baseName + (canvases.length > 1 ? '-' + pad2(i + 1) : '') + '.png', { type: 'image/png' });
+          return new File([b], baseName + (canvases.length > 1 ? '-' + pad2(i + 1) : '') + ext(), { type: b.type });
         });
       } catch (e) { files = null; }
       if (files && navigator.canShare && navigator.canShare({ files: files })) {
         return navigator.share({ files: files }).catch(function () {});
       }
       toast('Sharing is not available here, so the stickers were saved instead.');
-      if (blobs.length === 1) downloadBlob(blobs[0], baseName + '.png');
+      if (blobs.length === 1) downloadBlob(blobs[0], baseName + ext());
       else return saveZip(canvases, baseName);
     });
   }
@@ -378,9 +397,96 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
   }
   function saveZip(canvases, baseName) {
     return Promise.all(canvases.map(function (c) { return canvasToBlob(c).then(blobToU8); })).then(function (datas) {
-      var zip = makeZip(datas.map(function (d, i) { return { name: baseName + '-' + pad2(i + 1) + '.png', data: d }; }));
+      var zip = makeZip(datas.map(function (d, i) { return { name: baseName + '-' + pad2(i + 1) + ext(), data: d }; }));
       downloadBlob(zip, baseName + '.zip');
     });
+  }
+
+  /* ---------- small see-through GIF for Messenger ---------- */
+  // Messenger turns PNGs into photos (big, with a black or white box) but keeps GIFs as they are
+  var GIF_SIZE = 160;
+  function shrink(c, size) {
+    while (c.width > size * 2) {
+      var h = mk(c.width / 2, c.height / 2);
+      h.getContext('2d').drawImage(c, 0, 0, h.width, h.height);
+      c = h;
+    }
+    var o = mk(size, size * c.height / c.width), ctx = o.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(c, 0, 0, o.width, o.height);
+    return o;
+  }
+  function encodeGif(c) {
+    var w = c.width, h = c.height, n = w * h, TRANS = 255;
+    var d = c.getContext('2d').getImageData(0, 0, w, h).data;
+    // 5 bits per color; half see-through edge pixels are blended onto white
+    var keys = new Int32Array(n), counts = new Uint32Array(32768), i, j, a, r, g, b;
+    for (i = 0, j = 0; i < n; i++, j += 4) {
+      a = d[j + 3];
+      if (a < 128) { keys[i] = -1; continue; }
+      r = (d[j] * a + 255 * (255 - a)) / 255; g = (d[j + 1] * a + 255 * (255 - a)) / 255; b = (d[j + 2] * a + 255 * (255 - a)) / 255;
+      keys[i] = ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3);
+      counts[keys[i]]++;
+    }
+    // median cut down to 255 colors
+    var used = [];
+    for (i = 0; i < 32768; i++) if (counts[i]) used.push(i);
+    function ch(k, s) { return (k >> (10 - 5 * s)) & 31; }
+    function boxInfo(list) {
+      var lo = [31, 31, 31], hi = [0, 0, 0], tot = 0;
+      list.forEach(function (k) { for (var s = 0; s < 3; s++) { var v = ch(k, s); if (v < lo[s]) lo[s] = v; if (v > hi[s]) hi[s] = v; } tot += counts[k]; });
+      var axis = 0, span = -1;
+      for (var s = 0; s < 3; s++) if (hi[s] - lo[s] > span) { span = hi[s] - lo[s]; axis = s; }
+      return { list: list, axis: axis, span: span, tot: tot };
+    }
+    var boxes = used.length ? [boxInfo(used)] : [];
+    while (boxes.length < 255) {
+      var bi = -1, best = 0;
+      boxes.forEach(function (bx, k) { var sc = bx.span * Math.sqrt(bx.tot); if (bx.list.length > 1 && sc > best) { best = sc; bi = k; } });
+      if (bi < 0) break;
+      var bx = boxes[bi], ax = bx.axis;
+      bx.list.sort(function (p, q) { return ch(p, ax) - ch(q, ax); });
+      var half = bx.tot / 2, acc = 0, cut = 1;
+      for (i = 0; i < bx.list.length - 1; i++) { acc += counts[bx.list[i]]; if (acc >= half) { cut = i + 1; break; } cut = i + 1; }
+      boxes.splice(bi, 1, boxInfo(bx.list.slice(0, cut)), boxInfo(bx.list.slice(cut)));
+    }
+    var pal = new Uint8Array(768), map = new Uint8Array(32768);
+    boxes.forEach(function (bx, k) {
+      var sr = 0, sg = 0, sb = 0;
+      bx.list.forEach(function (key) { var m = counts[key]; sr += ch(key, 0) * m; sg += ch(key, 1) * m; sb += ch(key, 2) * m; map[key] = k; });
+      pal[k * 3] = Math.round(sr / bx.tot * 8.23); pal[k * 3 + 1] = Math.round(sg / bx.tot * 8.23); pal[k * 3 + 2] = Math.round(sb / bx.tot * 8.23);
+    });
+    var idx = new Uint8Array(n);
+    for (i = 0; i < n; i++) idx[i] = keys[i] < 0 ? TRANS : map[keys[i]];
+    // LZW, 8-bit minimum code size
+    var lzw = [], cur = 0, bits = 0, size = 9, next = 258, table = {}, prefix = idx[0];
+    function emit(code) {
+      cur |= code << bits; bits += size;
+      while (bits >= 8) { lzw.push(cur & 255); cur >>>= 8; bits -= 8; }
+    }
+    emit(256);
+    for (i = 1; i < n; i++) {
+      var k = idx[i], key = (prefix << 8) | k, code = table[key];
+      if (code === undefined) {
+        emit(prefix);
+        if (next === 4096) { emit(256); next = 258; size = 9; table = {}; }
+        else { if (next >= (1 << size)) size++; table[key] = next++; }
+        prefix = k;
+      } else prefix = code;
+    }
+    emit(prefix); emit(257);
+    if (bits > 0) lzw.push(cur & 255);
+    var out = [0x47, 0x49, 0x46, 0x38, 0x39, 0x61, w & 255, w >> 8, h & 255, h >> 8, 0xF7, 0, 0];
+    for (i = 0; i < 768; i++) out.push(pal[i]);
+    out.push(0x21, 0xF9, 4, 1, 0, 0, TRANS, 0);
+    out.push(0x2C, 0, 0, 0, 0, w & 255, w >> 8, h & 255, h >> 8, 0, 8);
+    for (i = 0; i < lzw.length; i += 255) {
+      var len = Math.min(255, lzw.length - i);
+      out.push(len);
+      for (j = 0; j < len; j++) out.push(lzw[i + j]);
+    }
+    out.push(0, 0x3B);
+    return new Blob([new Uint8Array(out)], { type: 'image/gif' });
   }
 
   /* ---------- sticker look: fit into 512x512 with a white border ---------- */
@@ -724,7 +830,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
       if (!a) return;
       close();
       if (a === 'share') shareCanvases([cutState.outs[i]], 'sticker-' + pad2(i + 1));
-      else if (a === 'save') canvasToBlob(cutState.outs[i]).then(function (b) { downloadBlob(b, 'sticker-' + pad2(i + 1) + '.png'); });
+      else if (a === 'save') canvasToBlob(cutState.outs[i]).then(function (b) { downloadBlob(b, 'sticker-' + pad2(i + 1) + ext()); });
       else if (a === 'edit') { editorLoad(cutState.pieces[i], true); showTab('photo'); }
       else if (a === 'del') { cutState.pieces.splice(i, 1); renderCutGrid(); }
     });
@@ -738,6 +844,8 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
     e.target.value = '';
   });
   bindSeg('cutOutline', function () { if (cutState.pieces.length) renderCutGrid(); });
+  bindSeg('cutFor', function (v) { setSegOn('edFor', v); });
+  bindSeg('edFor', function (v) { setSegOn('cutFor', v); });
   $('#cutAgain').addEventListener('click', runCut);
   $('#cutShareAll').addEventListener('click', function () {
     if (cutState.outs.length) shareCanvases(cutState.outs, 'sticker');
@@ -966,11 +1074,11 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
   });
   $('#edSave').addEventListener('click', function () {
     if (!ed.out) return toast('Trace around your picture first ✏️');
-    canvasToBlob(ed.out).then(function (b) { downloadBlob(b, 'my-sticker.png'); toast('Saved! Look in your Downloads.'); });
+    canvasToBlob(ed.out).then(function (b) { downloadBlob(b, 'my-sticker' + ext()); toast('Saved! Look in your Downloads.'); });
   });
 
   // for testing
-  window.__sticker = { cutSheet: cutSheet, renderSticker: renderSticker, cutState: cutState, ed: ed };
+  window.__sticker = { cutSheet: cutSheet, renderSticker: renderSticker, encodeGif: encodeGif, shrink: shrink, cutState: cutState, ed: ed };
 })();
 </script>
 </body>
