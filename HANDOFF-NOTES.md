@@ -33,6 +33,8 @@ Everything runs in the browser. No server, no internet needed after opening, pic
 - **iPhone stickers work (her main goal):** save as **File type: PNG** on the iPhone, open the picture, press and hold the character, tap **Add Sticker** (iOS 17+). The iPhone now recognizes the character because the PNG is see-through. The stickers are then in the iPhone's own sticker drawer and show small, without a box, in Messenger and other apps. Before (plain sheet / photo), the iPhone did not recognize it. Confirmed Oct 31 with screenshots: all 12 squirrel stickers in the iPhone sticker drawer; sent ones show small and see-through on iPhone, Samsung and laptop Messenger. Steps added to the app's "How to use your stickers" box.
 - GIF option still useful for Android phones (Samsung etc.), which have no "Add Sticker".
 
+- Added icons from her peace-sign squirrel sticker: browser tab = face close-up (`favicon.ico`, `icons/favicon-32.png`); home screen = whole sticker on the blue-pink gradient (`icons/apple-touch-icon.png` 180, `icons/icon-192.png`; `icons/icon-512.png` is ready for the PWA later).
+
 ## Next
 1. In a fresh chat with `navikichi/sticker-maker` attached: Claude uploads `index.html` + these notes, then she turns on GitHub Pages.
 2. Test on phones.
