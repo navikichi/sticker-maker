@@ -158,8 +158,13 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
         <button data-v="gif" class="on">Messenger</button><button data-v="png">Other apps</button>
       </div>
     </div>
+    <div class="opt sizeRow"><span>Size</span>
+      <div class="seg" id="cutSize">
+        <button data-v="96" class="on">Small</button><button data-v="128">Medium</button><button data-v="160">Big</button>
+      </div>
+    </div>
     <p class="muted" style="margin:0">Messenger: small and see-through. Other apps: big PNG for Telegram, WhatsApp and Viber.</p>
-        <div class="opt"><span>White border</span>
+    <div class="opt"><span>White border</span>
       <div class="seg" id="cutOutline">
         <button data-v="0">None</button><button data-v="0.025">Thin</button><button data-v="0.04" class="on">Normal</button><button data-v="0.06">Thick</button>
       </div>
@@ -219,6 +224,11 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
     <div class="opt"><span>Made for</span>
       <div class="seg" id="edFor">
         <button data-v="gif" class="on">Messenger</button><button data-v="png">Other apps</button>
+      </div>
+    </div>
+    <div class="opt sizeRow"><span>Size</span>
+      <div class="seg" id="edSize">
+        <button data-v="96" class="on">Small</button><button data-v="128">Medium</button><button data-v="160">Big</button>
       </div>
     </div>
     <p class="muted" style="margin:0">Messenger: small and see-through. Other apps: big PNG for Telegram, WhatsApp and Viber.</p>
@@ -318,7 +328,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
     return new Promise(function (resolve) { c.toBlob(function (b) { resolve(b); }, 'image/png'); });
   }
   function canvasToBlob(c) {
-    if (outFormat() === 'gif') return Promise.resolve(encodeGif(shrink(c, GIF_SIZE)));
+    if (outFormat() === 'gif') return Promise.resolve(encodeGif(sharpen(shrink(c, parseInt(segValue('cutSize'), 10) || 96))));
     return pngBlob(c);
   }
   function downloadBlob(blob, name) {
@@ -404,7 +414,6 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
 
   /* ---------- small see-through GIF for Messenger ---------- */
   // Messenger turns PNGs into photos (big, with a black or white box) but keeps GIFs as they are
-  var GIF_SIZE = 160;
   function shrink(c, size) {
     while (c.width > size * 2) {
       var h = mk(c.width / 2, c.height / 2);
@@ -415,6 +424,25 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(c, 0, 0, o.width, o.height);
     return o;
+  }
+  // light unsharp mask so small stickers stay crisp; see-through neighbours are skipped
+  function sharpen(c) {
+    var w = c.width, h = c.height, ctx = c.getContext('2d');
+    var img = ctx.getImageData(0, 0, w, h), d = img.data, s = new Uint8ClampedArray(d), x, y, k, ch, n, sum, j;
+    for (y = 1; y < h - 1; y++) for (x = 1; x < w - 1; x++) {
+      k = (y * w + x) * 4;
+      if (s[k + 3] < 128) continue;
+      for (ch = 0; ch < 3; ch++) {
+        n = 0; sum = 0;
+        for (j = -1; j <= 1; j += 2) {
+          if (s[k + j * 4 + 3] >= 128) { sum += s[k + j * 4 + ch]; n++; }
+          if (s[k + j * w * 4 + 3] >= 128) { sum += s[k + j * w * 4 + ch]; n++; }
+        }
+        if (n) d[k + ch] = s[k + ch] + 0.6 * (s[k + ch] - sum / n);
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    return c;
   }
   function encodeGif(c) {
     var w = c.width, h = c.height, n = w * h, TRANS = 255;
@@ -844,8 +872,15 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
     e.target.value = '';
   });
   bindSeg('cutOutline', function () { if (cutState.pieces.length) renderCutGrid(); });
-  bindSeg('cutFor', function (v) { setSegOn('edFor', v); });
-  bindSeg('edFor', function (v) { setSegOn('cutFor', v); });
+  // the two tabs share "Made for" and "Size"; Size only matters for Messenger
+  function syncFor(v) {
+    setSegOn('cutFor', v); setSegOn('edFor', v);
+    $$('.sizeRow').forEach(function (r) { r.classList.toggle('hidden', v !== 'gif'); });
+  }
+  bindSeg('cutFor', syncFor);
+  bindSeg('edFor', syncFor);
+  bindSeg('cutSize', function (v) { setSegOn('edSize', v); });
+  bindSeg('edSize', function (v) { setSegOn('cutSize', v); });
   $('#cutAgain').addEventListener('click', runCut);
   $('#cutShareAll').addEventListener('click', function () {
     if (cutState.outs.length) shareCanvases(cutState.outs, 'sticker');
@@ -1078,7 +1113,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
   });
 
   // for testing
-  window.__sticker = { cutSheet: cutSheet, renderSticker: renderSticker, encodeGif: encodeGif, shrink: shrink, cutState: cutState, ed: ed };
+  window.__sticker = { cutSheet: cutSheet, renderSticker: renderSticker, encodeGif: encodeGif, shrink: shrink, sharpen: sharpen, cutState: cutState, ed: ed };
 })();
 </script>
 </body>

@@ -18,7 +18,7 @@ Everything runs in the browser. No server, no internet needed after opening, pic
 - Written to work on old iPhones (iOS 12): no `?.`, no `??`, no CSS `inset`, touch fallback when Pointer Events are missing.
 - Cutting: background color = most common edge color; "Cutting" slider = tolerance (default 30); gaps in outlines are closed so white insides stay; small bits (hearts, sparkles) join the nearest big sticker.
 - ZIP is made in the page (no extra library).
-- "Made for" choice (both tabs, kept in sync): **Messenger** (default) = 160×160 see-through GIF; **Other apps** = 512×512 PNG for Telegram/WhatsApp/Viber. Reason: Messenger turns PNGs into photos (big, with a black or white box) but keeps GIFs as they are. Tested on Samsung + Messenger with a test page (small GIF won). GIF maker is in the page (no library): 255-color median cut, edges blended onto white, 1 see-through color.
+- "Made for" choice (both tabs, kept in sync): **Messenger** (default) = see-through GIF with a Size choice: Small 96 px (default, about the size of Messenger's own stickers), Medium 128, Big 160, lightly sharpened after shrinking; **Other apps** = 512×512 PNG for Telegram/WhatsApp/Viber. Reason: Messenger turns PNGs into photos (big, with a black or white box) but keeps GIFs as they are. Tested on Samsung + Messenger with a test page (small GIF won). GIF maker is in the page (no library): 255-color median cut, edges blended onto white, 1 see-through color.
 - Each sticker's inside is filled separately (closes outline gaps of about 1/18 of the sticker size), so white faces/bodies stay solid. Before this fix, moving the Cutting slider right (40+) made white faces see-through, and they showed black in Messenger's dark mode. The slider now goes up to 60 (was 90), because higher values erase thin grey outlines.
 
 ## Tested
@@ -28,7 +28,7 @@ Everything runs in the browser. No server, no internet needed after opening, pic
 ## Progress (Oct 30, 2026, evening)
 - index.html + these notes are on `main`. GitHub Pages is on (main, root). Live at https://navikichi.github.io/sticker-maker/
 - Works on the computer. Samsung (Chrome): cutting works; found the see-through face bug above and fixed it.
-- Messenger showed shared PNGs big and boxed → added the Messenger GIF option. Small GIFs look a bit softer than PNGs (fewer pixels).
+- Messenger showed shared PNGs big and boxed → added the Messenger GIF option. Small GIFs look a bit softer than PNGs (fewer pixels). She asked for smiley-sized stickers → added Size (Small = default).
 
 ## Next
 1. In a fresh chat with `navikichi/sticker-maker` attached: Claude uploads `index.html` + these notes, then she turns on GitHub Pages.
