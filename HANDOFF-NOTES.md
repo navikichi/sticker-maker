@@ -37,6 +37,8 @@ Everything runs in the browser. No server, no internet needed after opening, pic
 
 - Password screen (Oct 31): she wants the site for herself only. Only the SHA-256 hash is in the code (casual lock, not real security). "Keep me signed in" = localStorage, otherwise until the tab closes. "Sign out" link in the footer. To change the password, replace HASH in the lock script at the top of `<body>`.
 
+- Oct 31: tightly packed sheet with gappy fur outlines (angry squirrel set) cut into 13 with see-through bodies. Fix: big pieces whose boxes overlap ≥50% are joined (face + body), and the per-sticker fill closes gaps up to ~1/10 of the sticker size (was 1/18). Now 12 with solid white bodies; the white border looks more like a die-cut sticker.
+
 ## Next
 - **Status (Oct 31): paused by her choice. She got what she needed (iPhone stickers). She'll come back for fixes or new features.**
 - Still untested, on hold: realme, tablet, iPhone 6 Plus, finger-tracing on Photo sticker.
