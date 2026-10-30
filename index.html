@@ -160,7 +160,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
     </div>
     <h3>Cutting</h3>
     <p class="muted" style="margin:0">If parts of the background stay, move right. If parts of a sticker disappear, move left. Then tap <b>Cut again</b>.</p>
-    <input type="range" id="cutTol" min="8" max="90" value="30">
+    <input type="range" id="cutTol" min="8" max="60" value="30">
     <div class="row"><button class="btn ghost" id="cutAgain">✂️ Cut again</button></div>
   </div>
 </section>
@@ -533,6 +533,32 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
         best.gx1 = Math.max(best.gx1, s.x1); best.gy1 = Math.max(best.gy1, s.y1);
       }
     });
+    // per sticker: close bigger outline gaps and keep everything inside,
+    // so white faces stay even when the sheet-wide pass leaked into them
+    function fillInside(g, set, bw, bh) {
+      var R = Math.max(r, Math.round(Math.min(bw, bh) / 18));
+      var pw = bw + 2 * R, ph = bh + 2 * R, pn = pw * ph, k, xx, yy;
+      var m = new Uint8Array(pn);
+      for (yy = 0; yy < bh; yy++) for (xx = 0; xx < bw; xx++) {
+        if (set[lab[(g.gy0 + yy) * w + (g.gx0 + xx)]]) m[(yy + R) * pw + xx + R] = 1;
+      }
+      var cl = boxPass(boxPass(m, pw, ph, R, false), pw, ph, R, true);
+      var outside = new Uint8Array(pn), fq = new Int32Array(pn), fh = 0, ft = 0;
+      function fseed(k) { if (!cl[k] && !outside[k]) { outside[k] = 1; fq[ft++] = k; } }
+      for (xx = 0; xx < pw; xx++) { fseed(xx); fseed((ph - 1) * pw + xx); }
+      for (yy = 0; yy < ph; yy++) { fseed(yy * pw); fseed(yy * pw + pw - 1); }
+      while (fh < ft) {
+        k = fq[fh++]; xx = k % pw; yy = (k - xx) / pw;
+        if (xx > 0) fseed(k - 1); if (xx < pw - 1) fseed(k + 1);
+        if (yy > 0) fseed(k - pw); if (yy < ph - 1) fseed(k + pw);
+      }
+      var keep = new Uint8Array(bw * bh);
+      for (yy = 0; yy < bh; yy++) for (xx = 0; xx < bw; xx++) {
+        k = (yy + R) * pw + xx + R;
+        if (m[k] || !outside[k]) keep[yy * bw + xx] = 1;
+      }
+      return keep;
+    }
     // reading order: rows, then left to right
     var avgH = bigs.reduce(function (s, b) { return s + (b.y1 - b.y0); }, 0) / bigs.length;
     bigs.forEach(function (b) { b.cy = (b.gy0 + b.gy1) / 2; b.cx = (b.gx0 + b.gx1) / 2; });
@@ -550,10 +576,11 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
       var out = mk(bw, bh), octx = out.getContext('2d');
       var img = octx.createImageData(bw, bh), od = img.data;
       var set = {}; g.members.forEach(function (m) { set[m] = 1; });
+      var keep = fillInside(g, set, bw, bh);
       for (var yy = 0; yy < bh; yy++) {
         for (var xx = 0; xx < bw; xx++) {
           var si = (g.gy0 + yy) * w + (g.gx0 + xx);
-          if (set[lab[si]]) {
+          if (keep[yy * bw + xx]) {
             var sj = si * 4, oj = (yy * bw + xx) * 4;
             od[oj] = d[sj]; od[oj + 1] = d[sj + 1]; od[oj + 2] = d[sj + 2]; od[oj + 3] = d[sj + 3];
           }

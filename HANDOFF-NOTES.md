@@ -18,10 +18,15 @@ Everything runs in the browser. No server, no internet needed after opening, pic
 - Written to work on old iPhones (iOS 12): no `?.`, no `??`, no CSS `inset`, touch fallback when Pointer Events are missing.
 - Cutting: background color = most common edge color; "Cutting" slider = tolerance (default 30); gaps in outlines are closed so white insides stay; small bits (hearts, sparkles) join the nearest big sticker.
 - ZIP is made in the page (no extra library).
+- Each sticker's inside is filled separately (closes outline gaps of about 1/18 of the sticker size), so white faces/bodies stay solid. Before this fix, moving the Cutting slider right (40+) made white faces see-through, and they showed black in Messenger's dark mode. The slider now goes up to 60 (was 90), because higher values erase thin grey outlines.
 
 ## Tested
 - Headless Chrome on the computer with her two sample sheets: 12/12 stickers cut correctly for both. Trace + words worked. No errors.
 - NOT yet tested on real phones (Samsung, realme, tablet, iPhone 13, iPhone 6 Plus). Share button needs a real phone.
+
+## Progress (Oct 30, 2026, evening)
+- index.html + these notes are on `main`. GitHub Pages is on (main, root). Live at https://navikichi.github.io/sticker-maker/
+- Works on the computer. Samsung (Chrome): cutting works; found the see-through face bug above and fixed it.
 
 ## Next
 1. In a fresh chat with `navikichi/sticker-maker` attached: Claude uploads `index.html` + these notes, then she turns on GitHub Pages.
