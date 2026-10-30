@@ -30,7 +30,7 @@ Everything runs in the browser. No server, no internet needed after opening, pic
 - Works on the computer. Samsung (Chrome): cutting works; found the see-through face bug above and fixed it.
 - Messenger showed shared PNGs big and boxed → added the Messenger GIF option. Small GIFs look a bit softer than PNGs (fewer pixels). She asked for smiley-sized stickers → added Size (Small = default). She also asked to be able to download GIF, PNG or JPG → "Made for" became "File type: GIF | PNG | JPG".
 
-- **iPhone stickers work (her main goal):** save as **File type: PNG** on the iPhone, open the picture, press and hold the character, tap **Add Sticker** (iOS 17+). The iPhone now recognizes the character because the PNG is see-through. The stickers are then in the iPhone's own sticker drawer and show small, without a box, in Messenger and other apps. Before (plain sheet / photo), the iPhone did not recognize it. Screenshots of this from her phone are coming.
+- **iPhone stickers work (her main goal):** save as **File type: PNG** on the iPhone, open the picture, press and hold the character, tap **Add Sticker** (iOS 17+). The iPhone now recognizes the character because the PNG is see-through. The stickers are then in the iPhone's own sticker drawer and show small, without a box, in Messenger and other apps. Before (plain sheet / photo), the iPhone did not recognize it. Confirmed Oct 31 with screenshots: all 12 squirrel stickers in the iPhone sticker drawer; sent ones show small and see-through on iPhone, Samsung and laptop Messenger. Steps added to the app's "How to use your stickers" box.
 - GIF option still useful for Android phones (Samsung etc.), which have no "Add Sticker".
 
 ## Next
