@@ -38,6 +38,8 @@ Everything runs in the browser. No server, no internet needed after opening, pic
 - Password screen (Oct 31): she wants the site for herself only. Only the SHA-256 hash is in the code (casual lock, not real security). "Keep me signed in" = localStorage, otherwise until the tab closes. "Sign out" link in the footer. To change the password, replace HASH in the lock script at the top of `<body>`.
 
 ## Next
+- **Status (Oct 31): paused by her choice. She got what she needed (iPhone stickers). She'll come back for fixes or new features.**
+- Still untested, on hold: realme, tablet, iPhone 6 Plus, finger-tracing on Photo sticker.
 1. In a fresh chat with `navikichi/sticker-maker` attached: Claude uploads `index.html` + these notes, then she turns on GitHub Pages.
 2. Test on phones.
 3. Later: built-in AI (API), make it installable (PWA).
