@@ -30,7 +30,26 @@ Everything runs in the browser. No server, no internet needed after opening, pic
 - Works on the computer. Samsung (Chrome): cutting works; found the see-through face bug above and fixed it.
 - Messenger showed shared PNGs big and boxed → added the Messenger GIF option. Small GIFs look a bit softer than PNGs (fewer pixels). She asked for smiley-sized stickers → added Size (Small = default). She also asked to be able to download GIF, PNG or JPG → "Made for" became "File type: GIF | PNG | JPG".
 
+- **iPhone stickers work (her main goal):** save as **File type: PNG** on the iPhone, open the picture, press and hold the character, tap **Add Sticker** (iOS 17+). The iPhone now recognizes the character because the PNG is see-through. The stickers are then in the iPhone's own sticker drawer and show small, without a box, in Messenger and other apps. Before (plain sheet / photo), the iPhone did not recognize it. Screenshots of this from her phone are coming.
+- GIF option still useful for Android phones (Samsung etc.), which have no "Add Sticker".
+
 ## Next
 1. In a fresh chat with `navikichi/sticker-maker` attached: Claude uploads `index.html` + these notes, then she turns on GitHub Pages.
 2. Test on phones.
-3. Later: built-in AI (API), add to Interactive Notebook and Beryl, make it installable (PWA).
+3. Later: built-in AI (API), make it installable (PWA).
+4. Later: built-in stickers in the Interactive Notebook (see plan below).
+
+## Future plan: stickers inside the Interactive Notebook
+- The Notebook is `msegonia/interactive-notebook` (live at theinternotebook.com). **Beryl is one of its five class sections** (Amethyst, Beryl, Citrine, Diamond, Emerald), not a separate app.
+- The Notebook already has a chat (teacher ↔ students/groups, announcements). Messages go through Apps Script (`action:"send"` with `{cid, text, photo}`).
+- Plan, like Messenger's sticker store:
+  1. Sticker packs live in the Notebook site: `stickers/<pack>/01.gif …` plus a list file. Free, fast, cached by the service worker for offline.
+  2. A 😊 button next to the chat box opens a tray with one tab per pack; tap to send.
+  3. A sticker is sent as a short code in the text, e.g. `[[sticker:squirrel/03]]`, and the app shows it as the picture. No change to Apps Script or the Google Sheet; no Drive space or photo limit used. Old app copies would show the code text until refreshed.
+  4. New packs: add an "Export for Notebook" button in Sticker Maker (named GIFs + list), then upload to the Notebook repo. Maybe a teacher upload screen later.
+- Before starting:
+  - The Notebook's `index.html` is **built (minified) code**. We need the **source files** to add features safely. Ask her where they are.
+  - This session can only read the Notebook repo; changes need write access to `msegonia/interactive-notebook`.
+  - Check whether `app/Notebook.apk` just opens the website (then no new APK needed).
+  - Open questions: students allowed to send stickers or teacher only? Beryl first as a test, or all sections? Which first pack (the squirrel set)?
+- Do this in a fresh chat with the Notebook repo attached.
